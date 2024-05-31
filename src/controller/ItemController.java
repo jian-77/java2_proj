@@ -11,9 +11,11 @@ public class ItemController {
     Connection conn=DatabaseConnection.getConn();
 
 
+
     /**
      * 添加物资类型
      */
+
     public void addItemType(Item item){
         try{
             String sql="insert into item(name,type,returnable) values (?,?,?) returning id";
@@ -31,6 +33,7 @@ public class ItemController {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * 删除物资类型
      */
@@ -53,4 +56,5 @@ public class ItemController {
     public void decreaseItemQuantity(){
 
     }
+
 }

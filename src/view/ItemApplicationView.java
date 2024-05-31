@@ -1,5 +1,6 @@
 package view;
 
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -17,4 +18,5 @@ public class ItemApplicationView {
         frame.setVisible(true);
     }
 }
+
 

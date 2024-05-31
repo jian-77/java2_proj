@@ -27,6 +27,7 @@ public class Application {
     private Timestamp return_time;
     private int quantity;
 
+
     public void setAid(long aid) {
         this.aid = aid;
     }
@@ -114,4 +115,5 @@ public class Application {
     public int getQuantity() {
         return quantity;
     }
+
 }

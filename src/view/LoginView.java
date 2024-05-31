@@ -1,5 +1,6 @@
 package view;
 
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -77,15 +78,15 @@ public class LoginView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String username = usernameField.getText();
-                Long account=Long.valueOf(username);
+                Long account = Long.valueOf(username);
                 String password = passwordField.getText();
-                int rs=LoginController.Login(account,password);
-                if (rs==1) {
+                int rs = LoginController.Login(account, password);
+                if (rs == 1) {
                     frame.dispose();
                     new ApplicationAuthorizationView();
-                } else if (rs==2) {
+                } else if (rs == 2) {
                     frame.dispose();
-                    new ItemApplicationView ();
+                    new ItemApplicationView();
                 } else {
                     JOptionPane.showMessageDialog(frame, "请重新输入", "错误", JOptionPane.ERROR_MESSAGE);
                 }
