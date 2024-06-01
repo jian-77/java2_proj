@@ -25,7 +25,8 @@ public class ItemController {
             stmt.setBoolean(3, item.isReturnable());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()){
-                item.setId(rs.getLong("id"));}
+                item.setId(rs.getLong("id"));
+            }
             else{
                 System.out.println("no generate id");
             }
@@ -38,23 +39,48 @@ public class ItemController {
      * 删除物资类型
      */
     public void deleteItemType(Item item){
-
+        try{
+            String sql="delete from item where id = ?";
+            PreparedStatement stmt= conn.prepareStatement(sql);
+            stmt.setLong(1, item.getId());
+            stmt.executeQuery();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
     /**
      * 增加物资数量
      */
-    public void addItemQuantity(){
-
+    //offset为相比原本数量的偏移量，new quantity = old quantity + offset
+    //如果传进来的item的quantity已经是新的了，那就不需要offset，直接把第一个参数设为item.getQuantity就行了
+    public void addItemQuantity(Item item, int offset){
+        try{
+            String sql="update item_quantity set quantity = quantity + ? where id = ?";
+            PreparedStatement stmt= conn.prepareStatement(sql);
+            stmt.setInt(1, offset);
+            stmt.setLong(2, item.getId());
+            stmt.executeQuery();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 减少物资数量
      */
-
-    public void decreaseItemQuantity(){
-
+    //和addItemQuantity的情况一样
+    //addItemQuantity和decreaseItemQuantity可以合为一种方法
+    public void decreaseItemQuantity(Item item, int offset){
+        try{
+            String sql="update item_quantity set quantity = quantity - ? where id = ?";
+            PreparedStatement stmt= conn.prepareStatement(sql);
+            stmt.setInt(1, offset);
+            stmt.setLong(2, item.getId());
+            stmt.executeQuery();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-
 }
