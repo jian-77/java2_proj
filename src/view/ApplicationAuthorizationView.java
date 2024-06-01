@@ -91,7 +91,7 @@ public class ApplicationAuthorizationView {
         Application[]applications=ApplicationController.queryA();
         for (int i = 0; i <10; i++) {
             if (applications[i] != null) {
-                model.addRow(new Object[]{applications[i].getA_name(), "2022-05-20", "审核"});
+                model.addRow(new Object[]{applications[i].user.getName(), "2022-05-20", "审核"});
             }
         }
     }

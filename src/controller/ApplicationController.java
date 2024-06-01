@@ -24,16 +24,15 @@ public class ApplicationController {
             Application[] applications = new Application[10];
             while (rs.next()) {
                 Application application = new Application();
-                application.setId(rs.getLong(1));
-                application.setAccount(rs.getLong(2));
-                application.setId(rs.getLong(3));
-                application.setA_name(rs.getString(4));
-                application.setM_name(rs.getString(5));
-                application.setReturnable(rs.getBoolean(6));
-                application.setM_type(rs.getString(7));
-                application.setApplication_time(rs.getTimestamp(8));
-                application.setReturned(rs.getBoolean(9));
-                application.setQuantity(rs.getInt(11));
+                application.setAid(rs.getLong(1));
+                application.user.setAccount(rs.getLong(2));
+                application.user.setName(rs.getString(3));
+                application.item.setName(rs.getString(4));
+                application.item.setReturnable(rs.getBoolean(5));
+                application.item.setType(rs.getString(6));
+                application.setApplication_time(rs.getString(7));
+                application.setReturned(rs.getBoolean(8));
+                application.setQuantity(rs.getInt(10));
                 applications[index] = application;
                 index++;
             }
@@ -52,11 +51,33 @@ public class ApplicationController {
 
         return null;
     }
-}
 
     /**
      * 创建申请
      */
+    public static void createApplication(Application application){
+        try {
+            String sql = "insert into application_record(account, applicant_name, material_name, returnable, material_type, returned, applied_quantity,manager_name,application_time) " +
+                    "values (?,?,?,?,?,?,?,?,?);";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setLong(1,application.getUser().getAccount());
+            stmt.setString(2, application.getUser().getName());
+            stmt.setString(3, application.getItem().getName());
+            stmt.setBoolean(4, application.getItem().isReturnable());
+            stmt.setString(5,application.getItem().getType());
+            stmt.setBoolean(6,false);
+            stmt.setInt(7,application.getQuantity());
+            stmt.setString(8,application.getManager());
+            stmt.setString(9,application.getApplication_time());
+            stmt.execute();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}
+
 
 
     /**
