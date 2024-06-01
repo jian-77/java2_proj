@@ -16,7 +16,7 @@ public class ApplicationController {
      * 查询申请记录
      */
     public static Application[] queryA() {
-        try {
+        /*try {
             String sql = "select * from application_record;";
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
@@ -41,7 +41,8 @@ public class ApplicationController {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
+        */
+        return null;
     }
 
     /**
