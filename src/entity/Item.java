@@ -35,4 +35,21 @@ public class Item {
     public boolean isReturnable() {
         return returnable;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setReturnable(boolean returnable) {
+        this.returnable = returnable;
+    }
+
 }

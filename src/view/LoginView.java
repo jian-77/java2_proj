@@ -5,9 +5,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import controller.LoginController;
+import entity.User;
 
 public class LoginView {
+    static User  user;
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginView().createAndShowGUI());
     }
@@ -80,15 +85,26 @@ public class LoginView {
                 String username = usernameField.getText();
                 Long account = Long.valueOf(username);
                 String password = passwordField.getText();
-                int rs = LoginController.Login(account, password);
-                if (rs == 1) {
-                    frame.dispose();
-                    new ApplicationAuthorizationView();
-                } else if (rs == 2) {
-                    frame.dispose();
-                    new ItemApplicationView();
+                ResultSet rs = LoginController.Login(account, password);
+
+                try {
+                    if (rs.next()) {
+                        user=new User();
+                        user.setAccount(rs.getLong(1));
+                        user.setName(rs.getString(3));
+                    if (rs.getBoolean("privilege")) {
+                        frame.dispose();
+                        new ApplicationAuthorizationView();
+                        System.out.println(user.getName());
+                    } else {
+                        frame.dispose();
+                        new ItemApplicationView();
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(frame, "请重新输入", "错误", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(frame, "请重新输入", "错误", JOptionPane.ERROR_MESSAGE);
+                }
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
         });
