@@ -3,7 +3,7 @@ package entity;
 import java.sql.Timestamp;
 
 public class Application {
-    private long id;
+    private long aid;
     private User user;
     private Item item;
 
@@ -14,15 +14,15 @@ public class Application {
      */
     private boolean returned;
     private String return_time;
-    private int quantity;
-    private String manager;
+    private int applied_quantity;
+    private User manager;
 
-    public long getId() {
-        return id;
+    public long getAid() {
+        return aid;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setAid(long id) {
+        this.aid = id;
     }
 
     public User getUser() {
@@ -65,19 +65,19 @@ public class Application {
         this.return_time = return_time;
     }
 
-    public int getQuantity() {
-        return quantity;
+    public int getApplied_quantity() {
+        return applied_quantity;
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public void setApplied_quantity(int applied_quantity) {
+        this.applied_quantity = applied_quantity;
     }
 
-    public String getManager() {
+    public User getManager() {
         return manager;
     }
 
-    public void setManager(String manager) {
+    public void setManager(User manager) {
         this.manager = manager;
     }
 }
