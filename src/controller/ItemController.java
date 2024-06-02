@@ -122,11 +122,33 @@ public class ItemController {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        /**
-         * 默认搜索物资
-         */
 
     }
+
+    public static Item[] queryItemQuantity() {
+        try {
+            String sql = " select item.id,item.name,quantity\n" +
+                    "        from item join item_quantity on item.id = item_quantity.id;";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+            int index = 0;
+            Item[] items = new Item[10];
+            while (rs.next()) {
+                Item item = new Item();
+                item.setId(rs.getLong(1));
+                item.setName(rs.getString(2));
+                item.setType(rs.getString(3));
+                item.setReturnable(rs.getBoolean(4));
+                items[index] = item;
+                index++;
+            }
+            return items;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
 
 
 }
