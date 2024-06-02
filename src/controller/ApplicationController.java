@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import entity.Application;
+import entity.Item;
+import entity.User;
 
 public class ApplicationController {
     static Connection conn = DatabaseConnection.getConn();
@@ -17,7 +19,9 @@ public class ApplicationController {
      */
     public static Application[] queryA() {
         try {
-            String sql = "select * from application_record;";
+            String sql = "select * from application_record join item i on i.id = application_record.item_id " +
+                    "join users u on u.account = application_record.user_account " +
+                    "join users v on v.account = application_record.manager_account;";
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
             int index = 0;
@@ -25,14 +29,29 @@ public class ApplicationController {
             while (rs.next()) {
                 Application application = new Application();
                 application.setAid(rs.getLong(1));
-                application.user.setAccount(rs.getLong(2));
-                application.user.setName(rs.getString(3));
-                application.item.setName(rs.getString(4));
-                application.item.setReturnable(rs.getBoolean(5));
-                application.item.setType(rs.getString(6));
-                application.setApplication_time(rs.getString(7));
-                application.setReturned(rs.getBoolean(8));
-                application.setQuantity(rs.getInt(10));
+                application.setApplication_time(rs.getString(4));
+                application.setReturned(rs.getBoolean(5));
+                application.setReturn_time(rs.getString(6));
+                application.setApplied_quantity(rs.getInt(7));
+                User user = new User();
+                Item item = new Item();
+                User manager = new User();
+                user.setAccount(rs.getLong(9));
+                user.setPassword(rs.getString(10));
+                user.setName(rs.getString(11));
+                user.setPrivilege(rs.getBoolean(12));
+                application.setUser(user);
+                manager.setAccount(rs.getLong(13));
+                manager.setPassword(rs.getString(14));
+                manager.setName(rs.getString(15));
+                manager.setPrivilege(rs.getBoolean(16));
+                application.setManager(manager);
+                item.setId(rs.getLong(17));
+                item.setName(rs.getString(18));
+                item.setType(rs.getString(19));
+                item.setReturnable(rs.getBoolean(20));
+                item.setQuantity(rs.getInt(22));
+                application.setItem(item);
                 applications[index] = application;
                 index++;
             }
@@ -40,15 +59,56 @@ public class ApplicationController {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     /**
      * 按关键字查询申请记录
      */
-    public static Application[] queryA_key() {
-
-        return null;
+    //我不知道具体是什么关键字，所以就按照根据条件查询来写了
+    public static Application[] queryA_key(String condition) {
+        try {
+            String sql = "select * from application_record join item i on i.id = application_record.item_id " +
+                    "join users u on u.account = application_record.user_account " +
+                    "join users v on v.account = application_record.manager_account;" +
+                    "where ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, condition);
+            ResultSet rs = stmt.executeQuery();
+            int index = 0;
+            Application[] applications = new Application[10];
+            while (rs.next()) {
+                Application application = new Application();
+                application.setAid(rs.getLong(1));
+                application.setApplication_time(rs.getString(4));
+                application.setReturned(rs.getBoolean(5));
+                application.setReturn_time(rs.getString(6));
+                application.setApplied_quantity(rs.getInt(7));
+                User user = new User();
+                Item item = new Item();
+                User manager = new User();
+                user.setAccount(rs.getLong(9));
+                user.setPassword(rs.getString(10));
+                user.setName(rs.getString(11));
+                user.setPrivilege(rs.getBoolean(12));
+                application.setUser(user);
+                manager.setAccount(rs.getLong(13));
+                manager.setPassword(rs.getString(14));
+                manager.setName(rs.getString(15));
+                manager.setPrivilege(rs.getBoolean(16));
+                application.setManager(manager);
+                item.setId(rs.getLong(17));
+                item.setName(rs.getString(18));
+                item.setType(rs.getString(19));
+                item.setReturnable(rs.getBoolean(20));
+                item.setQuantity(rs.getInt(22));
+                application.setItem(item);
+                applications[index] = application;
+                index++;
+            }
+            return applications;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -56,20 +116,18 @@ public class ApplicationController {
      */
     public static void createApplication(Application application){
         try {
-            String sql = "insert into application_record(account, applicant_name, material_name, returnable, material_type, returned, applied_quantity,manager_name,application_time) " +
-                    "values (?,?,?,?,?,?,?,?,?);";
+            String sql = "insert into application_record(user_account, item_id, application_time, " +
+                    "returned, return_time, applied_quantity, manager_account) " +
+                    "values (?,?,?,?,?,?,?);";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setLong(1,application.user.getAccount());
-            stmt.setString(2, application.user.getName());
-            stmt.setString(3, application.item.getName());
-            stmt.setBoolean(4, application.item.isReturnable());
-            stmt.setString(5,application.item.getType());
-            stmt.setBoolean(6,false);
-            stmt.setInt(7,application.getQuantity());
-            stmt.setString(8,application.getManager());
-            stmt.setString(9,application.getApplication_time());
+            stmt.setLong(1, application.getUser().getAccount());
+            stmt.setLong(2, application.getItem().getId());
+            stmt.setString(3, application.getApplication_time());
+            stmt.setBoolean(4,application.isReturned());
+            stmt.setString(5, application.getReturn_time());
+            stmt.setInt(6,application.getApplied_quantity());
+            stmt.setLong(7,application.getManager().getAccount());
             stmt.execute();
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -78,11 +136,12 @@ public class ApplicationController {
 }
 
 
-
+    //如果是在个人主页上查看申请记录，用上面的根据条件查询不是一样的吗？当然为了方便理解多写一个方法去调用上面的方法也不是不行
     /**
      * 查询历史申请记录
      */
 
+    //既然Application里有是否归还等信息，审核记录和申请记录不是一样的吗
     /**
      * 查询历史审核记录
      */

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class LoginController {
     static Connection conn = DatabaseConnection.getConn();
-
+    //我觉得这里返回一个boolean类型，表示是否能够登入成功就可以了，可以返回true，不行返回false?
     public static ResultSet Login(Long account, String password) {
         try {
             String sql = "select * from users where account=? and password=?;";

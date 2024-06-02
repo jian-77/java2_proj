@@ -3,62 +3,42 @@ package entity;
 import java.sql.Timestamp;
 
 public class Application {
-
     private long aid;
-    public User user;
-    public Item item;
+    private User user;
+    private Item item;
 
     private String application_time;
+
     /**
      * whether returned or not
      */
     private boolean returned;
     private String return_time;
-    private int quantity;
-    private String manager;
-
-
-    public void setAid(long aid) {
-        this.aid = aid;
-    }
-
-
-
-
-
-    public void setReturned(boolean returned) {
-        this.returned = returned;
-    }
-
-
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+    private int applied_quantity;
+    private User manager;
 
     public long getAid() {
         return aid;
     }
 
-
-
-
-
-    public boolean isReturned() {
-        return returned;
+    public void setAid(long id) {
+        this.aid = id;
     }
 
-
-    public int getQuantity() {
-        return quantity;
+    public User getUser() {
+        return user;
     }
 
-    public String getManager() {
-        return manager;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public void setManager(String manager) {
-        this.manager = manager;
+    public Item getItem() {
+        return item;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
     }
 
     public String getApplication_time() {
@@ -69,6 +49,14 @@ public class Application {
         this.application_time = application_time;
     }
 
+    public boolean isReturned() {
+        return returned;
+    }
+
+    public void setReturned(boolean returned) {
+        this.returned = returned;
+    }
+
     public String getReturn_time() {
         return return_time;
     }
@@ -76,8 +64,20 @@ public class Application {
     public void setReturn_time(String return_time) {
         this.return_time = return_time;
     }
-    public Application(){
-        user=new User();
-        item=new Item();
+
+    public int getApplied_quantity() {
+        return applied_quantity;
+    }
+
+    public void setApplied_quantity(int applied_quantity) {
+        this.applied_quantity = applied_quantity;
+    }
+
+    public User getManager() {
+        return manager;
+    }
+
+    public void setManager(User manager) {
+        this.manager = manager;
     }
 }
