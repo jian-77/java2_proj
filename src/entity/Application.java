@@ -15,7 +15,15 @@ public class Application {
     private boolean returned;
     private String return_time;
     private int applied_quantity;
+    private int status;  //0 表示 未审核，1表示审核通过，2表示未通过
     private User manager;
+    public boolean isDelete;
+    public Application(){
+        user=new User();
+        manager=new User();
+        item=new Item();
+        isDelete=false;
+    }
 
     public long getAid() {
         return aid;
@@ -79,5 +87,13 @@ public class Application {
 
     public void setManager(User manager) {
         this.manager = manager;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

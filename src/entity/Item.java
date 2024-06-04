@@ -12,6 +12,8 @@ public class Item {
 
     private boolean returnable;
 
+    private boolean isDeleted;
+
     public void setId(long id) {
         this.id = id;
     }
@@ -52,4 +54,11 @@ public class Item {
         this.returnable = returnable;
     }
 
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
 }

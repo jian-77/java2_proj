@@ -1,20 +1,26 @@
-package view;
-
+package view;//package view;
+import controller.ApplicationController;
+import entity.Application;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableCellEditor;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import controller.ApplicationController;
-import entity.Application;
+import java.time.LocalDate;
+
+import controller.ItemController;
+import entity.User;
 
 public class ApplicationAuthorizationView {
     private JFrame frame;
     private DefaultTableModel model;
-    private JTable table; // Declare table as a class-level variable
+    private JTable table;
+    private JTextField searchField;
+    private Application[]applications;
+    private filter_Application[] filter_applications;
 
     public ApplicationAuthorizationView() {
         initializeUI();
@@ -23,12 +29,13 @@ public class ApplicationAuthorizationView {
     private void initializeUI() {
         frame = new JFrame("页面 1 - 物资审核");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
+        frame.setSize(800, 650);
         frame.setLayout(new BorderLayout(10, 10));
 
         // Sidebar configuration
-        String[] options = {"物资审核", "物资种类管理","物资数量管理", "个人界面"};
+        String[] options = {"物资审核", "物资种类管理", "物资数量管理", "个人界面"};
         JList<String> sidebar = new JList<>(options);
+
         sidebar.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         sidebar.setSelectedIndex(0);  // Default selection for "物资审核"
         sidebar.setBackground(new Color(255, 182, 193)); // Pink color
@@ -37,192 +44,199 @@ public class ApplicationAuthorizationView {
         sidebar.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 switch (sidebar.getSelectedValue()) {
+                    case "物资种类管理":
+                        frame.dispose();
+                        new ItemTypeManagementView();
+                        break;
                     case "物资数量管理":
                         frame.dispose();
                         new ItemQuantityManagementView();
                         break;
                     case "个人界面":
-                        // Handle personal interface logic here
+                        frame.dispose();
+                        new Manager_UI();
                         break;
                 }
             }
         });
-        frame.add(new JScrollPane(sidebar), BorderLayout.WEST);
+        JPanel sidebarPanel = new JPanel(new BorderLayout());
+        sidebarPanel.add(sidebar, BorderLayout.CENTER);
+        frame.add(sidebarPanel, BorderLayout.WEST);
 
-        // Center panel configuration
-        JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
-        frame.add(centerPanel, BorderLayout.CENTER);
-
-        // Search panel
-        JPanel searchPanel = new JPanel(new FlowLayout());
-        JTextField searchField = new JTextField(20);
+        // Search panel configuration
+        JPanel searchPanel = new JPanel();
+        searchField = new JTextField(20);
         JButton searchButton = new JButton("搜索");
-        searchPanel.add(new JLabel("搜索申请人:"));
+        searchPanel.add(new JLabel("搜索申请物资:"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
-        centerPanel.add(searchPanel, BorderLayout.NORTH);
+        frame.add(searchPanel, BorderLayout.NORTH);
 
-        // Table model setup
-        String[] columnNames = {"申请人姓名", "申请时间", "操作"};
+        // Table configuration
+        String[] columnNames = {"申请编号", "申请人姓名", "申请物资", "申请时间", "操作"};
         model = new DefaultTableModel(null, columnNames);
         table = new JTable(model);
         table.setPreferredScrollableViewportSize(new Dimension(500, 300));
         table.setRowHeight(30);
         addInitialData(); // Method to add data to the model
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int column = table.getColumnModel().getColumnIndexAtX(e.getX()); // get the column of the button
+                int row = e.getY() / table.getRowHeight(); // get the row of the button
 
-        // Adding buttons to the table
-        table.getColumn("操作").setCellRenderer(new ButtonRenderer());
-        table.getColumn("操作").setCellEditor(new ButtonEditor(new JCheckBox()));
-        JScrollPane scrollPane = new JScrollPane(table);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
-
-        // Search button action listener
-        searchButton.addActionListener(e -> {
-            String searchText = searchField.getText().trim();
-            filterTable(searchText);
+                // Make sure the click is within the bounds of the table
+                if (row < table.getRowCount() && row >= 0 && column < table.getColumnCount() && column >= 0) {
+                    Object value = table.getValueAt(row, column);
+                    if ("审核".equals(value)) {
+                        showDetailsDialogue(row);
+                    }
+                }
+            }
         });
 
+        frame.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        // Search functionality
+        searchButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                filter_applications = new filter_Application[1000];
+                String searchText = searchField.getText().toLowerCase();
+                DefaultTableModel filteredModel = new DefaultTableModel(columnNames, 0);
+                int index = 0;
+                int application_index = 0;
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    while (applications[application_index].isDelete) {
+                        application_index++;
+                    }
+                    String name = model.getValueAt(i, 2).toString().toLowerCase();
+                    if (name.contains(searchText)) {
+                        filteredModel.addRow(new Object[]{applications[application_index].getAid(), applications[application_index].getUser().getName(), applications[application_index].getItem().getName(), applications[application_index].getApplication_time(), "审核"});
+                        filter_Application tmp = new filter_Application(applications[application_index], i);
+                        filter_applications[index] = tmp;
+                        index++;
+                    }
+                    application_index++;
+                }
+                table.setModel(filteredModel);
+            }
+        });
+
+        // Ensure the frame is centered
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
-    // Method to add initial data to the table
+    private void showDetailsDialogue(int row) {
+        Application a;
+       if (filter_applications!=null) {
+            a= filter_applications[row].application;
+       }
+       else{
+           int index=0;
+           int real_row=0;
+           while (real_row<row){
+               if (!applications[index].isDelete){
+                   real_row++;
+               }
+               index++;
+           }
+           a = applications[real_row];
+       }
+        JDialog dialog = new JDialog(frame, "详细信息", true);
+        dialog.setLayout(new BorderLayout());
+
+        // Table setup
+        String[] columnNames = {"属性", "值"};
+        String[] rowData = {"申请人姓名", a.getUser().getName(),
+                "申请时间",a.getApplication_time(),
+                "申请物品名称",a.getItem().getName(),
+                "是否需要归还",String.valueOf(a.getItem().isReturnable()),
+                "物品种类",a.getItem().getType(),
+                "申请用量",String.valueOf(a.getApplied_quantity()),
+                "物资余量",String.valueOf(a.getItem().getQuantity()),
+                "是否删除",String.valueOf(a.getItem().isDeleted()),
+                };
+
+
+
+        DefaultTableModel detailsModel = new DefaultTableModel(columnNames, 0);
+        for (int i = 0; i < rowData.length; i += 2) {
+            detailsModel.addRow(new Object[]{rowData[i], rowData[i + 1]});
+        }
+        JTable detailsTable = new JTable(detailsModel);
+        dialog.add(new JScrollPane(detailsTable), BorderLayout.CENTER);
+
+        // Button setup
+        JPanel buttonsPanel = new JPanel();
+        JButton approveButton = new JButton("批准");
+        JButton denybutton=new JButton("不批准");
+        buttonsPanel.add(approveButton);
+        buttonsPanel.add(denybutton);
+        dialog.add(buttonsPanel, BorderLayout.SOUTH);
+
+        approveButton.addActionListener(ae -> {
+
+            if (filter_applications!=null){
+                ((DefaultTableModel) table.getModel()).removeRow(row);
+                model.removeRow(filter_applications[row].real_row);
+                filter_applications[row].application.isDelete=true;
+                ItemController.editItemQuantity(filter_applications[row].application.getItem(),filter_applications[row].application.getItem().getQuantity()-filter_applications[row].application.getApplied_quantity());
+            }
+            else{
+                model.removeRow(row);
+//                int index=row;
+//                while (applications[index]!=null){
+//                    applications[index]=applications[index+1];
+//                    index++;
+//                }
+                applications[row].isDelete=true;
+                ItemController.editItemQuantity(applications[row].getItem(),applications[row].getItem().getQuantity()-applications[row].getApplied_quantity());
+            }
+            ApplicationController.pass(a, LoginView.user.getAccount());
+            dialog.dispose();
+        });
+        denybutton.addActionListener(ae -> {
+            if (filter_applications!=null){
+                ((DefaultTableModel) table.getModel()).removeRow(row);
+                model.removeRow(filter_applications[row].real_row);
+                filter_applications[row].application.isDelete=true;
+            }
+            else{
+                model.removeRow(row);
+                applications[row].isDelete=true;
+            }
+            ApplicationController.reject(a, LoginView.user.getAccount());
+            dialog.dispose();
+        });
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+    }
+
     private void addInitialData() {
-        Application[]applications=ApplicationController.queryA();
-        for (int i = 0; i <10; i++) {
+        applications= ApplicationController.queryA();
+
+        for (int i = 0; i <1000; i++) {
             if (applications[i] != null) {
-                model.addRow(new Object[]{applications[i].user.getName(), "2022-05-20", "审核"});
+               model.addRow(new Object[]{applications[i].getAid(),applications[i].getUser().getName(),applications[i].getItem().getName(),applications[i].getApplication_time(),"审核"});
             }
         }
     }
 
-    // Method to filter table based on search text
-    private void filterTable(String searchText) {
-        DefaultTableModel filteredModel = new DefaultTableModel(new Object[]{"申请人姓名", "申请时间", "操作"}, 0);
-        for (int i = 0; i < model.getRowCount(); i++) {
-            if (model.getValueAt(i, 0).toString().contains(searchText)) {
-                filteredModel.addRow(new Object[]{
-                        model.getValueAt(i, 0),
-                        model.getValueAt(i, 1),
-                        "审核"
-                });
-            }
+
+
+    private static class filter_Application{
+        Application application;
+        int real_row;
+        public filter_Application(Application application,int real_row){
+            this.application=application;
+            this.real_row=real_row;
         }
-        table.setModel(filteredModel);
-        table.getColumn("操作").setCellRenderer(new ButtonRenderer());
-        table.getColumn("操作").setCellEditor(new ButtonEditor(new JCheckBox()));
+
     }
 
-    // TableCellRenderer for buttons in the table
-    class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setOpaque(true);
-            setBackground(Color.WHITE);
-        }
 
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            return this;
-        }
-    }
-
-    // TableCellEditor for buttons in the table
-    class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
-        private String label;
-        private boolean isPushed;
-
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton();
-            button.setOpaque(true);
-            button.setBackground(Color.WHITE);
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    fireEditingStopped();
-                }
-            });
-        }
-
-        public Component getTableCellEditorComponent(JTable table, Object value,
-                                                     boolean isSelected, int row, int column) {
-            if (isSelected) {
-                button.setForeground(table.getSelectionForeground());
-                button.setBackground(table.getSelectionBackground());
-            } else {
-                button.setForeground(table.getForeground());
-                button.setBackground(table.getBackground());
-            }
-            label = (value == null) ? "" : value.toString();
-            button.setText(label);
-            isPushed = true;
-            return button;
-        }
-
-        public Object getCellEditorValue() {
-            if (isPushed) {
-                showDetailsDialog(table, label);
-            }
-            isPushed = false;
-            return label;
-        }
-
-        public boolean stopCellEditing() {
-            isPushed = false;
-            return super.stopCellEditing();
-        }
-
-        protected void fireEditingStopped() {
-            super.fireEditingStopped();
-        }
-
-        private void showDetailsDialog(JTable table, String label) {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow >= 0) {
-                // Assuming additional details like item name, need for return, item type, quantity
-                Object[] details = {"Item Name", true, "Item Type", 2};  // Example values
-                String applicantName = table.getValueAt(selectedRow, 0).toString();
-                String applicationTime = table.getValueAt(selectedRow, 1).toString();
-
-                JDialog dialog = new JDialog(frame, "审核详情", true);
-                dialog.setLayout(new BorderLayout());
-
-                // Table for details
-                DefaultTableModel detailsModel = new DefaultTableModel();
-                detailsModel.addColumn("属性");
-                detailsModel.addColumn("值");
-                detailsModel.addRow(new Object[]{"申请人姓名", applicantName});
-                detailsModel.addRow(new Object[]{"申请时间", applicationTime});
-                detailsModel.addRow(new Object[]{"申请物品名称", details[0]});
-                detailsModel.addRow(new Object[]{"是否需要归还", details[1]});
-                detailsModel.addRow(new Object[]{"物品种类", details[2]});
-                detailsModel.addRow(new Object[]{"申请用量", details[3]});
-                JTable detailsTable = new JTable(detailsModel);
-                dialog.add(new JScrollPane(detailsTable), BorderLayout.CENTER);
-
-                // Buttons panel
-                JPanel buttonsPanel = new JPanel();
-                JButton approveButton = new JButton("批准");
-                JButton denyButton = new JButton("不批准");
-                buttonsPanel.add(approveButton);
-                buttonsPanel.add(denyButton);
-                dialog.add(buttonsPanel, BorderLayout.SOUTH);
-
-                // Button actions
-                approveButton.addActionListener(ae -> {
-                    model.removeRow(selectedRow);
-                    dialog.dispose();
-                });
-                denyButton.addActionListener(ae -> {
-                    model.removeRow(selectedRow);
-                    dialog.dispose();
-                });
-
-                dialog.pack();
-                dialog.setLocationRelativeTo(frame);
-                dialog.setVisible(true);
-            }
-        }
-    }
 }
+

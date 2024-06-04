@@ -12,12 +12,13 @@ import controller.LoginController;
 import entity.User;
 
 public class LoginView {
-    static User  user;
+
+    public static User user;
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginView().createAndShowGUI());
     }
 
-    private void createAndShowGUI() {
+   public static void createAndShowGUI() {
         // 创建主框架
         JFrame frame = new JFrame("实验物资管理系统");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -92,6 +93,7 @@ public class LoginView {
                         user=new User();
                         user.setAccount(rs.getLong(1));
                         user.setName(rs.getString(3));
+                        user.setPassword(password);
                     if (rs.getBoolean("privilege")) {
                         frame.dispose();
                         new ApplicationAuthorizationView();

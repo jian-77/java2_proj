@@ -1,5 +1,9 @@
 package view;
 
+import controller.ItemController;
+import entity.Application;
+import entity.Item;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -12,10 +16,15 @@ public class ItemQuantityManagementView {
     private JFrame frame;
     private DefaultTableModel model;
     private JTable table;
+    private Item[]items;
+    private filter_item[]filter_items=new filter_item[10];
+
+    DefaultTableModel filteredModel;
 
     public ItemQuantityManagementView() {
         initializeUI();
     }
+
 
     private void initializeUI() {
         frame = new JFrame("物资管理");
@@ -42,6 +51,10 @@ public class ItemQuantityManagementView {
                     frame.dispose();
                     new ItemTypeManagementView();  // Assuming Page1 is also updated to remember the last state
                 }
+                if (sidebar.getSelectedValue().equals("个人界面")) {
+                    frame.dispose();
+                    new Manager_UI();  // Assuming Page1 is also updated to remember the last state
+                }
             }
         });
         frame.add(new JScrollPane(sidebar), BorderLayout.WEST);
@@ -60,7 +73,7 @@ public class ItemQuantityManagementView {
         centerPanel.add(searchPanel, BorderLayout.NORTH);
 
         // Table model setup
-        String[] columnNames = {"物资名称", "物资余量", "操作"};
+        String[] columnNames = {"物资名称", "物资余量","物资类型", "操作"};
         model = new DefaultTableModel(null, columnNames);
         table = new JTable(model);
         table.setPreferredScrollableViewportSize(new Dimension(500, 100));
@@ -84,21 +97,29 @@ public class ItemQuantityManagementView {
     }
 
     private void addInitialData() {
-        model.addRow(new Object[]{"电脑", 3, "编辑"});
-        model.addRow(new Object[]{"氯化钠", 50, "编辑"});
-        model.addRow(new Object[]{"烧杯", 7, "编辑"});
-
+        items= ItemController.queryItemQuantity();
+        for (int i = 0; i <1000; i++) {
+            if (items[i] != null) {
+                model.addRow(new Object[]{items[i].getName(),items[i].getQuantity(),items[i].getType(),"编辑"});
+                filter_item tmp=new filter_item(items[i],i);
+                filter_items[i]=tmp;
+            }
+        }
     }
 
     private void filterTable(String searchText) {
-        DefaultTableModel filteredModel = new DefaultTableModel(new Object[]{"物资名称", "物资余量", "操作"}, 0);
+         filteredModel = new DefaultTableModel(new Object[]{"物资名称", "物资余量","物资类型","操作"}, 0);
+        int index=0;
         for (int i = 0; i < model.getRowCount(); i++) {
             if (model.getValueAt(i, 0).toString().contains(searchText)) {
                 filteredModel.addRow(new Object[]{
                         model.getValueAt(i, 0),
                         model.getValueAt(i, 1),
+                        model.getValueAt(i, 2),
                         "编辑"
                 });
+                filter_item tmp=new filter_item(items[i],i);
+                filter_items[index++]=tmp;
             }
         }
         table.setModel(filteredModel);
@@ -191,9 +212,9 @@ public class ItemQuantityManagementView {
 //                Object[] details = {"Item Name", true, "Item Type", 2};  // Example values
                 String goodsName = table.getValueAt(selectedRow, 0).toString();
                 int goodsQuantity=Integer.parseInt(table.getValueAt(selectedRow, 1).toString());
-                String goodsType = "电子产品";
+                String goodsType = (String) table.getValueAt(selectedRow, 2);
 
-                String goodsReturnable="false";
+                String goodsReturnable= String.valueOf(items[selectedRow].isReturnable());
 
                 JDialog dialog = new JDialog(frame, "物资详情", true);
                 dialog.setLayout(new BorderLayout());
@@ -223,13 +244,16 @@ public class ItemQuantityManagementView {
 
                 // Button actions
                 approveButton.addActionListener(ae -> {
-
                             if (detailsTable.getCellEditor() != null) {
                                 detailsTable.getCellEditor().stopCellEditing();  // 结束编辑并获取值
 
                                 String cellValue = (String) detailsTable.getValueAt(4, 1);  // 获取当前单元格的值
                                 int cellValue1=Integer.valueOf(cellValue);
-
+                                model.setValueAt(cellValue1, filter_items[selectedRow].real_row, 1);
+                                if (filteredModel!=null) {
+                                    filteredModel.setValueAt(cellValue1, selectedRow, 1);
+                                }
+                                ItemController.editItemQuantity(filter_items[selectedRow].item,cellValue1);
                                 System.out.println("Edited Value: " + cellValue1);           // 打印或使用值
                             }
                             dialog.dispose();
@@ -246,4 +270,14 @@ public class ItemQuantityManagementView {
             }
         }
     }
+    private static class filter_item{
+        Item item;
+        int real_row;
+        public filter_item(Item item,int real_row){
+            this.item=item;
+            this.real_row=real_row;
+        }
+
+    }
+
 }
